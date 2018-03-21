@@ -33,5 +33,10 @@ comp.initFirstXlsx @"C:\my_path\test_it.xlsx" "My Sheet Name"
         {colType = StringCol; Name =  "Trader"};
         {colType = FloatCol; Name =  "Market Value"};
     |] 
-    DateTime.Now.Date 1 ""
+    DateTime.Now.Date // xlsx key parameter for import 
+    // a generic type, provided a function to show a' to string, 
+    // in this test-case an event date                      
+    (fun d -> d.ToString("yyyy-MM-dd")) // for ordering reasons, it'll be used in the events log track
+    1 
+    ""
 |> printfn "\n%s"

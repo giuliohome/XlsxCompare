@@ -14,6 +14,7 @@ type XlsxCompare() =
         (sheetName: string)
         (colSchema: Header[])
         (xlsxTag: 'a)
+        (showTag: 'a -> string)
         (keyColNum : int)
         (sqlitePath : string) = 
 
@@ -56,5 +57,5 @@ type XlsxCompare() =
         )
         
         // now we need to import our xlsxCols into Sqlite
-        firstImport2Sqlite xlsxTag keyColNum sqlitePath xlsxCols
+        firstImport2Sqlite xlsxTag showTag keyColNum sqlitePath xlsxCols
         

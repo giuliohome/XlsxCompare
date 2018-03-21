@@ -3,14 +3,15 @@ open XlsxDsl
 
 let firstImport2Sqlite<'a> 
         (xlsxTag: 'a)
+        (showTag: 'a -> string)
         (keyColNum : int)
         (sqlitePath : string) 
         (xlsxCols : ColValues[]) 
         =
         //TO-DO
         let colKey = xlsxCols.[keyColNum]
-        printfn "the columns %A (type %s) and %s (type %s) \nare the keys for the following tables" 
-            xlsxTag (xlsxTag.GetType().ToString())
+        printfn "\nthe columns XlsxKey (%A of type %s) and %s (type %s) \nare the keys for the following tables" 
+            (showTag(xlsxTag)) (xlsxTag.GetType().ToString())
             colKey.header.Name (colKey.header.colType.ToString())
 
         [| 0 .. (xlsxCols.Length - 1)|]
