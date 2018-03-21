@@ -15,6 +15,7 @@ open System
 let comp = XlsxCompare()
 comp.initFirstXlsx @"C:\my_path\test_it.xlsx" "My Sheet Name" 
     [|
+        {colType = DateCol; Name = "Registration Date"}; 
         {colType = StringCol; Name = "ContrKey"};
         {colType = StringCol; Name =  "Cpty"};
         {colType = StringCol; Name =  "Curr"};
@@ -27,6 +28,10 @@ comp.initFirstXlsx @"C:\my_path\test_it.xlsx" "My Sheet Name"
         {colType = FloatCol; Name =  "Qty"};
         {colType = StringCol; Name =  "Qty UoM"};
         {colType = IntCol; Name =  "TC Order"};
+        {colType = DateCol; Name =  "CharterParty Date"};
+        {colType = StringCol; Name =  "CharterParty Full Name"};
+        {colType = StringCol; Name =  "Trader"};
+        {colType = FloatCol; Name =  "Market Value"};
     |] 
     DateTime.Now.Date 1 ""
 |> printfn "\n%s"
