@@ -41,5 +41,5 @@ comp.initFirstXlsx @"C:\my_path\test_it.xlsx" "My Sheet Name"
     // in this test-case an event date                      
     (fun d -> d.ToString("yyyy-MM-dd")) // for ordering reasons, it'll be used in the events log track
     1 
-    ""
+    @"C:\test\xlsxCompare\logbook_test.s3db"
 |> printfn "\n%s"

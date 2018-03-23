@@ -4,20 +4,12 @@ open SqliteInterpreter
 open utils // concatenate maps
 
 
-let reduceKeyValue (keyColNum : int) (valColNum : int) (xlsxColsBefore : ColValues[]) (xlsxColsNew : ColValues[]) : Map<string, string option> =
+let reduceKeyValue (keyColNum : int) (valColNum : int) (beforeMap : Map<string, string option>) (xlsxColsNew : ColValues[]) : Map<string, string option> =
     let beforeKeys = 
-        xlsxColsBefore.[keyColNum].Cells
-        |> Array.choose readCell2String
+        beforeMap 
+        |> Map.toArray
+        |> Array.map (fun (k,v) -> k)
         |> Set.ofArray
-    let beforeMap = 
-        xlsxColsBefore.[keyColNum].Cells
-        |> Array.mapi ( fun i ct ->
-            match readCell2String ct with
-            | None -> None
-            | Some key -> Some (key, readCell2String xlsxColsBefore.[valColNum].Cells.[i])
-            )
-        |> Array.choose id
-        |> Map.ofArray
     let currentKeys = 
         xlsxColsNew.[keyColNum].Cells
         |> Array.choose readCell2String
@@ -77,6 +69,7 @@ let importDDL2Sqlite<'a>
                 let header = xlsxCols.[i].header
                 printfn "creating %s sqlite table with values of type %A" 
                     header.Name header.colType
+                createTable sqlitePath header.Name i (colKey.header.colType.ToString().Replace("Col","")) (header.colType.ToString().Replace("Col",""))
             )
 
 
