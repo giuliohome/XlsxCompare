@@ -1,7 +1,10 @@
 ﻿#r @"C:\shipping\2018xlsm\xlsx2sqlite\XlComp\packages\ClosedXML.0.91.0\lib\net452\ClosedXML.dll"
 #r @"C:\shipping\2018xlsm\xlsx2sqlite\XlComp\packages\DocumentFormat.OpenXml.2.7.2\lib\net46\DocumentFormat.OpenXml.dll"
 #r @"C:\shipping\2018xlsm\xlsx2sqlite\XlComp\packages\FastMember.Signed.1.1.0\lib\net40\FastMember.Signed.dll"
+#r @"C:\shipping\2018xlsm\xlsx2sqlite\XlComp\packages\System.Data.SQLite.Core.1.0.108.0\lib\net46\System.Data.SQLite.dll"
+#load "utils.fs"
 #load "XlsxDsl.fs"
+#load "SqliteInterpreter.fs"
 #load "SqliteDsl.fs"
 #load "XlsxCompare.fs"
 

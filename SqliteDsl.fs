@@ -1,13 +1,71 @@
 ﻿module SqliteDsl
 open XlsxDsl
+open SqliteInterpreter
+open utils // concatenate maps
 
-let firstImport2Sqlite<'a> 
+
+let reduceKeyValue (keyColNum : int) (valColNum : int) (xlsxColsBefore : ColValues[]) (xlsxColsNew : ColValues[]) : Map<string, string option> =
+    let beforeKeys = 
+        xlsxColsBefore.[keyColNum].Cells
+        |> Array.choose readCell2String
+        |> Set.ofArray
+    let beforeMap = 
+        xlsxColsBefore.[keyColNum].Cells
+        |> Array.mapi ( fun i ct ->
+            match readCell2String ct with
+            | None -> None
+            | Some key -> Some (key, readCell2String xlsxColsBefore.[valColNum].Cells.[i])
+            )
+        |> Array.choose id
+        |> Map.ofArray
+    let currentKeys = 
+        xlsxColsNew.[keyColNum].Cells
+        |> Array.choose readCell2String
+        |> Set.ofArray
+    let currentMap = 
+        xlsxColsNew.[keyColNum].Cells
+        |> Array.mapi ( fun i ct ->
+            match readCell2String ct with
+            | None -> None
+            | Some key -> Some (key, readCell2String xlsxColsNew.[valColNum].Cells.[i])
+            )
+        |> Array.choose id
+        |> Map.ofArray
+    let deletedKeys = beforeKeys - currentKeys
+    let insertedKeys = currentKeys - beforeKeys
+    let possiblyUpdatedKeys = Set.intersect beforeKeys currentKeys
+    let reallyUpdatedKeys = 
+        possiblyUpdatedKeys
+        |> Set.toArray
+        |> Array.where ( fun upd ->
+            currentMap.Item(upd) = beforeMap.Item(upd) |> not
+        )
+    let deletedKeysMap : Map<string, string option> = 
+        deletedKeys
+        |> Set.toArray
+        |> Array.map(fun k -> (k,None))
+        |> Map.ofArray
+    let insertedAndUpdatedKeysMap = 
+        insertedKeys
+        |> Set.toArray
+        |> Array.append reallyUpdatedKeys
+        |> Array.map(fun k -> (k, currentMap.Item(k)))
+        |> Map.ofArray
+
+            
+    deletedKeysMap
+    |> merge (fun k (v1,v2) -> Some "error") insertedAndUpdatedKeysMap // keys shouldn't overlap
+          
+
+let importDDL2Sqlite<'a> 
         (xlsxTag: 'a)
         (showTag: 'a -> string)
         (keyColNum : int)
         (sqlitePath : string) 
         (xlsxCols : ColValues[]) 
         =
+        createLogBook sqlitePath
+
         let colKey = xlsxCols.[keyColNum]
         printfn "\nthe columns XlsxKey (%A of type %A) and %s (type %s) \nare the keys for the following tables" 
             (showTag(xlsxTag)) (xlsxTag.GetType())
@@ -19,13 +77,53 @@ let firstImport2Sqlite<'a>
                 let header = xlsxCols.[i].header
                 printfn "creating %s sqlite table with values of type %A" 
                     header.Name header.colType
+            )
+
+
+let importDML2Sqlite<'a> 
+        (xlsxTag: 'a)
+        (showTag: 'a -> string)
+        (keyColNum : int)
+        (sqlitePath : string) 
+        (xlsxCols : ColValues[]) 
+        =
+        //TO DO - Optimization of the Gaps and Islands Pattern is:
+        //Don't Repeat Yourself
+        //We have to insert only the effective changes, not all the keys and values
+        [| 0 .. (xlsxCols.Length - 1)|]
+        |> Array.except [|keyColNum|]
+        |> Array.iter( fun i ->
                 let cells = xlsxCols.[i].Cells
-                let numValues = cells.Length
-                printfn "there are %d values to be inserted: from %A to %A"  
+                let numValues = cells.Length 
+                // we have group all the key and select
+                // the val before of the max tag < xlsxTag
+                // the val after of the min tag > xlstag
+                // | val before is the same -> skip current value
+                // | val after is the same -> insert current value and delete the value after
+                // | _ -> insert current value
+                // TO MAKE IT SIMPLE => we impose that the tagged xlsx files are imported in stricly ascending order of tag
+                // all this logic will be managed inside the function reduceKeyValue
+                let xlsxColBefore = readCollValues xlsxCols.[i].header
+                let optimizedInserts = reduceKeyValue keyColNum i xlsxColBefore xlsxCols |> Map.toArray 
+                printfn "there are %d values to be inserted into table %s: from %A to %A out %d (duplicated) from  from %A to %A"  
+                    optimizedInserts.Length
+                    xlsxCols.[keyColNum].header.Name
+                    (if optimizedInserts.Length >0 then optimizedInserts.[0] else "-" , Some "-" )
+                    (if optimizedInserts.Length >0 then Array.last optimizedInserts else "-" , Some "-" )
                     numValues 
                     cells.[0] 
                     cells.[numValues-1]
-            )
+            )    
+
+let firstImport2Sqlite<'a> 
+        (xlsxTag: 'a)
+        (showTag: 'a -> string)
+        (keyColNum : int)
+        (sqlitePath : string) 
+        (xlsxCols : ColValues[]) 
+        =
+        importDDL2Sqlite xlsxTag showTag keyColNum sqlitePath xlsxCols
+        importDML2Sqlite xlsxTag showTag keyColNum sqlitePath xlsxCols
 
         //then I can track the log changes by
         //[wrong] grouping (= distinct values = changes) and taking first, last value 
@@ -58,3 +156,6 @@ let firstImport2Sqlite<'a>
         //TO-DO
             
         "First Excel Imported into new Sqlite DB"
+
+
+    

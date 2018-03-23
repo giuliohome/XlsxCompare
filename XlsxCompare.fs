@@ -38,9 +38,9 @@ type XlsxCompare() =
                         companyRow.Field(c.Name).GetString()
                         |> (fun s -> 
                             match s with
-                            | null -> StringCell None
-                            | "" -> StringCell None
-                            | str -> StringCell (Some str))
+                            | null 
+                            | ""    -> StringCell None
+                            | str   -> StringCell (Some str))
                     ) |> Seq.toArray
                 })
 
