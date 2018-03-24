@@ -29,5 +29,6 @@ Now, we want to produce the changes log for `Code2` in the following log-book
 ![img3](https://bitbucket.org/giuliohome2015/xlsxcompare/raw/460488182eee2da85b132114b3fcb877419f2c70/images/logbook.JPG)
 
 Imagine hundreds of excel files with hundreds of rows and dozens of columns and you'll guess the reason why a tool is needed.
+So that's exactly what the [Script.fsx](https://bitbucket.org/giuliohome2015/xlsxcompare/src/master/Script.fsx) is up to doing. 
 
 
