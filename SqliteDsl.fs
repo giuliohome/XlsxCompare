@@ -96,7 +96,8 @@ let importDML2Sqlite<'a>
                 // | _ -> insert current value
                 // TO MAKE IT SIMPLE => we impose that the tagged xlsx files are imported in stricly ascending order of tag
                 // all this logic will be managed inside the function reduceKeyValue
-                let xlsxColBefore = readCollValues xlsxCols.[i].header
+                printfn "reading %s %A from sqlite" xlsxCols.[i].header.Name xlsxCols.[i].header.colType
+                let xlsxColBefore = readCollValues sqlitePath xlsxCols.[i].header
                 let optimizedInserts = reduceKeyValue keyColNum i xlsxColBefore xlsxCols |> Map.toArray 
                 printfn "there are %d values to be inserted into table %s: from %A to %A out %d (duplicated) from  from %A to %A"  
                     optimizedInserts.Length
@@ -153,5 +154,14 @@ let firstImport2Sqlite<'a>
         tagXlsxPath sqlitePath xlsxPath (showTag xlsxTag)
         "First Excel Imported into new Sqlite DB"
 
-
-    
+let nextImport2Sqlite<'a> 
+        (xlsxTag: 'a)
+        (showTag: 'a -> string)
+        (keyColNum : int)
+        (sqlitePath : string) 
+        (xlsxPath : string) 
+        (xlsxCols : ColValues[]) 
+        =
+        importDML2Sqlite xlsxTag showTag keyColNum sqlitePath xlsxCols    
+        tagXlsxPath sqlitePath xlsxPath (showTag xlsxTag)
+        "Next Excel Imported into new Sqlite DB"

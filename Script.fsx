@@ -16,7 +16,8 @@ open System
 // Let's use library scripting code for testing purposes
 
 let comp = XlsxCompare()
-comp.initFirstXlsx @"C:\my_path\test_it.xlsx" "My Sheet Name" 
+
+let xlsxSchema = 
     [|
         {colType = DateCol; Name = "Registration Date"}; 
         {colType = StringCol; Name = "ContrKey"};
@@ -36,10 +37,21 @@ comp.initFirstXlsx @"C:\my_path\test_it.xlsx" "My Sheet Name"
         {colType = StringCol; Name =  "Trader"};
         {colType = FloatCol; Name =  "Market Value"};
     |] 
-    DateTime.Now.Date // xlsx key parameter for import 
+
+comp.initFirstXlsx @"C:\test\xlsxCompare\file_01.xlsx" "My Sheet Name" 
+    xlsxSchema
+    (DateTime(2018,3,10)) // xlsx key parameter for import 
     // a generic type, provided a function to show a' to string, 
     // in this test-case an event date                      
     (fun d -> d.ToString("yyyy-MM-dd")) // for ordering reasons, it'll be used in the events log track
     1 // the index is zero-based: "ContrKey" is the key for diff-ing
+    @"C:\test\xlsxCompare\logbook_test.s3db"
+|> printfn "\n%s"
+
+comp.nextXlsx @"C:\test\xlsxCompare\file_02.xlsx" "My Sheet Name" 
+    xlsxSchema
+    (DateTime(2018,4,1)) // must be in ascending order: later than the previous import                     
+    (fun d -> d.ToString("yyyy-MM-dd")) // must be the same as the previous imports
+    1 // must be the same as the previous imports
     @"C:\test\xlsxCompare\logbook_test.s3db"
 |> printfn "\n%s"
