@@ -40,6 +40,6 @@ comp.initFirstXlsx @"C:\my_path\test_it.xlsx" "My Sheet Name"
     // a generic type, provided a function to show a' to string, 
     // in this test-case an event date                      
     (fun d -> d.ToString("yyyy-MM-dd")) // for ordering reasons, it'll be used in the events log track
-    1 
+    1 // the index is zero-based: "ContrKey" is the key for diff-ing
     @"C:\test\xlsxCompare\logbook_test.s3db"
 |> printfn "\n%s"
