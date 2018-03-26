@@ -56,12 +56,12 @@ let importDDL2Sqlite<'a>
         (sqlitePath : string) 
         (xlsxCols : ColValues[]) 
         =
-        createLogBook sqlitePath
 
         let colKey = xlsxCols.[keyColNum]
-        printfn "\nthe columns XlsxKey (%A of type %A) and %s (type %s) \nare the keys for the following tables" 
+        createLogBook sqlitePath colKey.header.Name (colKey.header.colType.ToString().Replace("Col","")) keyColNum
+        printfn "\nthe columns XlsxKey (%A of type %A) and %s (type %A) \nare the keys for the following tables" 
             (showTag(xlsxTag)) (xlsxTag.GetType())
-            colKey.header.Name (colKey.header.colType.ToString())
+            colKey.header.Name (colKey.header.colType)
 
         [| 0 .. (xlsxCols.Length - 1)|]
         |> Array.except [|keyColNum|]
@@ -100,12 +100,13 @@ let importDML2Sqlite<'a>
                 let optimizedInserts = reduceKeyValue keyColNum i xlsxColBefore xlsxCols |> Map.toArray 
                 printfn "there are %d values to be inserted into table %s: from %A to %A out %d (duplicated) from  from %A to %A"  
                     optimizedInserts.Length
-                    xlsxCols.[keyColNum].header.Name
+                    xlsxCols.[i].header.Name
                     (if optimizedInserts.Length >0 then optimizedInserts.[0] else "-" , Some "-" )
                     (if optimizedInserts.Length >0 then Array.last optimizedInserts else "-" , Some "-" )
                     numValues 
                     cells.[0] 
                     cells.[numValues-1]
+                insertIntoTable sqlitePath xlsxCols.[i].header.Name  (showTag xlsxTag) optimizedInserts
             )    
 
 let firstImport2Sqlite<'a> 
