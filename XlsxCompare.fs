@@ -57,5 +57,5 @@ type XlsxCompare() =
         )
         
         // now we need to import our xlsxCols into Sqlite
-        firstImport2Sqlite xlsxTag showTag keyColNum sqlitePath xlsxCols
+        firstImport2Sqlite xlsxTag showTag keyColNum sqlitePath xlsxPath xlsxCols
         

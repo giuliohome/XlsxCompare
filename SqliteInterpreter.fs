@@ -13,7 +13,8 @@ let createLogBook (dbName : string) (keyName : string) (keyType : string)  (keyC
         "create table xlsx_cols (" +
         "col_name VARCHAR(15), " +
         "col_type VARCHAR(10), " +
-        "col_index INT)"
+        "col_index INT, " + 
+        "PRIMARY KEY(col_name) )"
     use cmd = new SQLiteCommand(cmdDDL, conn)
     cmd.ExecuteNonQuery() |> ignore
     cmd.Dispose()
@@ -22,7 +23,8 @@ let createLogBook (dbName : string) (keyName : string) (keyType : string)  (keyC
         "create table xlsx_key (" +
         "col_name VARCHAR(15), " +
         "col_type VARCHAR(10), " +
-        "col_index INT)"
+        "col_index INT, " + 
+        "PRIMARY KEY(col_name) )"
     use cmd = new SQLiteCommand(cmdDDL, conn)
     cmd.ExecuteNonQuery() |> ignore
     cmd.Dispose()
@@ -36,10 +38,38 @@ let createLogBook (dbName : string) (keyName : string) (keyType : string)  (keyC
     cmd.Parameters.AddWithValue("@col_index", keyCol) |> ignore
     cmd.ExecuteNonQuery() |> ignore
     cmd.Dispose()
+
+    let cmdDDL = 
+        "create table xlsx_imports (" +
+        "ImportedOn DATE, " +
+        "XlsxTag VARCHAR(15), " +
+        "XlsxPath VARCHAR(50), " + 
+        "PRIMARY KEY(XlsxTag) )"
+    use cmd = new SQLiteCommand(cmdDDL, conn)
+    cmd.ExecuteNonQuery() |> ignore
+    cmd.Dispose()
     
     conn.Close()
     conn.Dispose()
 
+
+let tagXlsxPath (dbName : string) (xlsxPath : string) (xlsxTag : string) =
+    let connStr = sprintf "Data Source=%s;Version=3;" dbName
+    use conn = new SQLiteConnection(connStr)
+    conn.Open()
+
+    let cmdDDL = 
+        "insert into xlsx_imports(ImportedOn, XlsxTag, XlsxPath) " + 
+        "values (@ImportedOn, @XlsxTag, @XlsxPath)"
+    use cmd = new SQLiteCommand(cmdDDL, conn)
+    cmd.Parameters.AddWithValue("@ImportedOn", DateTime.Now) |> ignore
+    cmd.Parameters.AddWithValue("@XlsxTag", xlsxTag) |> ignore
+    cmd.Parameters.AddWithValue("@XlsxPath" ,xlsxPath) |> ignore
+    cmd.ExecuteNonQuery() |> ignore
+    cmd.Dispose()
+    
+    conn.Close()
+    conn.Dispose()
 
 let createTable (dbName : string) (tableName: string) (colValNum: int) (keyType: string) (valType: string) =
     let connStr = sprintf "Data Source=%s;Version=3;" dbName
@@ -50,7 +80,8 @@ let createTable (dbName : string) (tableName: string) (colValNum: int) (keyType:
         "create table \"" + tableName + "\" (" +
         "XlsxTag VARCHAR(15), " +
         "XlsxKey " + keyType + ", " + 
-        "XlsxVal " + valType + ")"
+        "XlsxVal " + valType + ", " + 
+        "PRIMARY KEY(XlsxTag,XlsxKey) )"
     use cmd = new SQLiteCommand(cmdDDL, conn)
     cmd.ExecuteNonQuery() |> ignore
     cmd.Dispose()

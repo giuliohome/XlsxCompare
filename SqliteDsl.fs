@@ -114,6 +114,7 @@ let firstImport2Sqlite<'a>
         (showTag: 'a -> string)
         (keyColNum : int)
         (sqlitePath : string) 
+        (xlsxPath : string) 
         (xlsxCols : ColValues[]) 
         =
         importDDL2Sqlite xlsxTag showTag keyColNum sqlitePath xlsxCols
@@ -149,6 +150,7 @@ let firstImport2Sqlite<'a>
 
         //TO-DO
             
+        tagXlsxPath sqlitePath xlsxPath (showTag xlsxTag)
         "First Excel Imported into new Sqlite DB"
 
 
