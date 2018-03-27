@@ -35,3 +35,7 @@ type XlsxCompare() =
         
         // now we need to import our xlsxCols into Sqlite
         nextImport2Sqlite xlsxTag showTag keyColNum sqlitePath xlsxPath xlsxCols
+
+
+    member this.log2Mem (xlsxPath : string) (fields : string[]) (keyVal : string) = 
+        produceLog  xlsxPath fields keyVal

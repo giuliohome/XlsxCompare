@@ -165,3 +165,11 @@ let nextImport2Sqlite<'a>
         importDML2Sqlite xlsxTag showTag keyColNum sqlitePath xlsxCols    
         tagXlsxPath sqlitePath xlsxPath (showTag xlsxTag)
         "Next Excel Imported into new Sqlite DB"
+
+
+
+let produceLog (sqlitePath : string) (fields: string[]) (keyValue: string) : seq<LogChange> =
+    fields
+    |> Seq.map (produceFieldLog sqlitePath keyValue)
+    |> Seq.concat 
+    |> Seq.sortBy (fun (c: LogChange) -> c.tagAfter , c.fieldName)

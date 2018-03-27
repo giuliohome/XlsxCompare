@@ -163,5 +163,52 @@ let readCollValues (dbName : string) (h : Header) : Map<string, string option> =
     conn.Dispose()
     records_as_list |> Map.ofList
 
+let read2String (DR: SQLiteDataReader) (col: string) : string option =
+    let i = DR.GetOrdinal(col)
+    if DR.IsDBNull(i) then 
+        None 
+    else
+        DR.GetString(i)
+        |> Some
 
+let produceFieldLog 
+    (dbName : string)  (keySearch: string) (fieldName: string) : seq<LogChange> =
+    
+    let cmdSql = 
+        @"select Tb.XlsxKey as key, 
+        (select max(XlsxTag) from xlsx_imports imp where imp.XlsxTag < Tb.XlsxTag) as tag_before,
+        Tb.XlsxTag as tag_after, Tb.XlsxVal as val_after from ""TableName"" Tb 
+        where Tb.XlsxKey = @XlsxKey ".Replace("TableName", fieldName)
+
+    let connStr = sprintf "Data Source=%s;Version=3;" dbName
+    use conn = new SQLiteConnection(connStr)
+    conn.Open()
+
+    use cmd = new SQLiteCommand(cmdSql, conn)
+    cmd.Parameters.AddWithValue("@XlsxKey", keySearch) |> ignore
+    let DR = cmd.ExecuteReader()
+    let records_as_list = 
+        [
+            while DR.Read() do
+                yield 
+                    {
+                    keyValue = keySearch;
+                    tagAfter = DR.["tag_after"] :?> string;
+                    tagBefore = read2String DR "tag_before";
+                    fieldName = fieldName;
+                    valueAfter = read2String DR "val_after";
+                    valueBefore = None;
+                    }
+        ]
+    cmd.Dispose()
+
+    conn.Close()
+    conn.Dispose()
+    records_as_list
+    |> List.mapi ( fun i c ->
+            if i > 0 then
+                {c with valueBefore = 
+                        records_as_list.Item(i-1).valueAfter}
+            else c )
+    |> List.toSeq
 

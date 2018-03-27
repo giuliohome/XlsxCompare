@@ -35,6 +35,8 @@ let readCell2String (cell : CellType) =
         | Some f -> f.ToString() |> Some
 
 
+type LogChange = { keyValue: string; tagAfter: string; tagBefore: string option; fieldName: string; valueAfter: string option; valueBefore: string option}
+
 let readXlsx         
         (xlsxPath : string) 
         (sheetName: string)
