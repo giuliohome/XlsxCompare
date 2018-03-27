@@ -26,7 +26,7 @@ And the third as `2018-03-01`
 
 Now, we want to produce the changes log for `Code2` in the following log-book
 
-![img3]images/logbook.JPG)
+![img3](images/logbook.JPG)
 
 Imagine hundreds of excel files with hundreds of rows and dozens of columns and you'll guess the reason why a tool is needed.
 So that's exactly what the [Script.fsx](Script.fsx) is up to doing. 
