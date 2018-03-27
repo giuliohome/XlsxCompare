@@ -174,11 +174,10 @@ let read2String (DR: SQLiteDataReader) (col: string) : string option =
 let produceFieldLog 
     (dbName : string)  (keySearch: string) (fieldName: string) : seq<LogChange> =
     
-    let cmdSql = 
-        @"select Tb.XlsxKey as key, 
+    let cmdSql = @"select 
         (select max(XlsxTag) from xlsx_imports imp where imp.XlsxTag < Tb.XlsxTag) as tag_before,
         Tb.XlsxTag as tag_after, Tb.XlsxVal as val_after from ""TableName"" Tb 
-        where Tb.XlsxKey = @XlsxKey ".Replace("TableName", fieldName)
+        where Tb.XlsxKey = @XlsxKey order by Tb.XlsxTag asc ".Replace("TableName", fieldName)
 
     let connStr = sprintf "Data Source=%s;Version=3;" dbName
     use conn = new SQLiteConnection(connStr)
