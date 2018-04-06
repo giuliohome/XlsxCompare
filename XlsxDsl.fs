@@ -18,12 +18,14 @@ type ColType =
 type Header = { colType : ColType; Name : string}
 type ColValues =  { header : Header ; Cells : CellType[]}
 
+let ofString (value:string) =
+        if String.IsNullOrEmpty value then None else Some value
+
 let cell2String (trasf: string -> string) (cell: IXLCell)=
-        cell.GetString()
-        |> (fun s -> 
-            match s with
-            | str when String.IsNullOrEmpty str -> StringCell None
-            | str   -> StringCell (Some (trasf str)))
+    cell.GetString()
+    |> ofString
+    |> Option.map trasf
+    |> StringCell
 
 let dateTrasf = fun str ->
     (System.DateTime.Parse str).ToString("yyyy-MM-dd")
@@ -104,3 +106,42 @@ let readXlsx
         )
 
         xlsxCols
+
+
+
+let writeLogBook (xlsxPath : string) (changes : seq<LogChange>) =
+    use wb = new XLWorkbook()
+    use ws = wb.Worksheets.Add("Contacts")
+
+    ws.Cell(1,1).Value <- "Contr. Key"
+    ws.Cell(1,2).Value <- "Event Date"
+    ws.Cell(1,3).Value <- "Previous Date"
+    ws.Cell(1,4).Value <- "Field Name"
+    ws.Cell(1,5).Value <- "Current Value"
+    ws.Cell(1,6).Value <- "Previous Value"
+
+    let rngHeaders = ws.Range("A1:F1")
+    rngHeaders.Style.Alignment.Horizontal <- XLAlignmentHorizontalValues.Center
+    rngHeaders.Style.Font.Bold <- true
+    rngHeaders.Style.Font.FontColor <- XLColor.DarkBlue;
+    rngHeaders.Style.Fill.BackgroundColor <- XLColor.Aqua;
+
+    changes
+    |> Seq.iteri ( fun i c -> 
+        ws.Cell(2 + i,1).Value <- c.keyValue //"Contr. Key"
+        ws.Cell(2 + i,2).Value <- c.tagAfter //"Event Date"
+        match c.tagBefore with
+        | Some tag -> ws.Cell(2 + i,3).Value <- tag //"Previous Date"
+        | _ -> ()
+        ws.Cell(2 + i,4).Value <- c.fieldName //"Field Name"
+        match c.valueAfter with
+        | Some avalue -> ws.Cell(2 + i,5).Value <- avalue //"Current Value"
+        | _ -> ()
+        match c.valueBefore with
+        | Some avalue -> ws.Cell(2 + i,6).Value <- avalue //"Previous Value"
+        | _ -> ()
+    )
+
+    ws.Columns().AdjustToContents() |> ignore 
+    ws.SheetView.Freeze(1,1)
+    wb.SaveAs(xlsxPath)
