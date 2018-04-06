@@ -30,11 +30,8 @@ let cell2String (trasf: string -> string) (cell: IXLCell)=
 let dateTrasf = fun str ->
     (System.DateTime.Parse str).ToString("yyyy-MM-dd")
   
-let intTrasf = fun str ->
-    (System.Int32.Parse str).ToString() 
-
-let floatTrasf = fun str ->
-    (System.Decimal.Parse str).ToString() 
+let toString trasf = fun str ->
+    (trasf str).ToString() 
 
 let readExcelCell (c: Header) (cell: IXLCell) : CellType =
     match c.colType with
@@ -43,9 +40,9 @@ let readExcelCell (c: Header) (cell: IXLCell) : CellType =
     | DateCol -> 
         cell |> cell2String dateTrasf
     | FloatCol ->
-        cell |> cell2String floatTrasf
+        cell |> cell2String (toString System.Decimal.Parse)
     | IntCol ->
-        cell |> cell2String intTrasf
+        cell |> cell2String (toString System.Int32.Parse)
 
 let readCell2String (cell : CellType) = 
     match cell with
