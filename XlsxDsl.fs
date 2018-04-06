@@ -31,10 +31,10 @@ let dateTrasf = fun str ->
     (System.DateTime.Parse str).ToString("yyyy-MM-dd")
   
 let intTrasf = fun str ->
-    (System.Int32.Parse str).ToString("yyyy-MM-dd") 
+    (System.Int32.Parse str).ToString() 
 
 let floatTrasf = fun str ->
-    (System.Decimal.Parse str).ToString("yyyy-MM-dd") 
+    (System.Decimal.Parse str).ToString() 
 
 let readExcelCell (c: Header) (cell: IXLCell) : CellType =
     match c.colType with
