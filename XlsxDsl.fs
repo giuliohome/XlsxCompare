@@ -18,6 +18,33 @@ type ColType =
 type Header = { colType : ColType; Name : string}
 type ColValues =  { header : Header ; Cells : CellType[]}
 
+let cell2String (trasf: string -> string) (cell: IXLCell)=
+        cell.GetString()
+        |> (fun s -> 
+            match s with
+            | str when String.IsNullOrEmpty str -> StringCell None
+            | str   -> StringCell (Some (trasf str)))
+
+let dateTrasf = fun str ->
+    (System.DateTime.Parse str).ToString("yyyy-MM-dd")
+  
+let intTrasf = fun str ->
+    (System.Int32.Parse str).ToString("yyyy-MM-dd") 
+
+let floatTrasf = fun str ->
+    (System.Decimal.Parse str).ToString("yyyy-MM-dd") 
+
+let readExcelCell (c: Header) (cell: IXLCell) : CellType =
+    match c.colType with
+    | StringCol -> 
+        cell |> cell2String id
+    | DateCol -> 
+        cell |> cell2String dateTrasf
+    | FloatCol ->
+        cell |> cell2String floatTrasf
+    | IntCol ->
+        cell |> cell2String intTrasf
+
 let readCell2String (cell : CellType) = 
     match cell with
     | StringCell maybeText -> maybeText
@@ -59,12 +86,8 @@ let readXlsx
                 Cells = 
                     xlsxTable.DataRange.Rows( fun (r: IXLTableRow) -> true )
                     |> Seq.map (fun (companyRow : IXLTableRow) ->  
-                        companyRow.Field(c.Name).GetString()
-                        |> (fun s -> 
-                            match s with
-                            | null 
-                            | ""    -> StringCell None
-                            | str   -> StringCell (Some str))
+                        companyRow.Field(c.Name)
+                        |> readExcelCell c
                     ) |> Seq.toArray
                 })
 
@@ -81,42 +104,3 @@ let readXlsx
         )
 
         xlsxCols
-
-
-
-let writeLogBook (xlsxPath : string) (changes : seq<LogChange>) =
-    use wb = new XLWorkbook()
-    use ws = wb.Worksheets.Add("Contacts")
-
-    ws.Cell(1,1).Value <- "Contr. Key"
-    ws.Cell(1,2).Value <- "Event Date"
-    ws.Cell(1,3).Value <- "Previous Date"
-    ws.Cell(1,4).Value <- "Field Name"
-    ws.Cell(1,5).Value <- "Current Value"
-    ws.Cell(1,6).Value <- "Previous Value"
-
-    let rngHeaders = ws.Range("A1:F1")
-    rngHeaders.Style.Alignment.Horizontal <- XLAlignmentHorizontalValues.Center
-    rngHeaders.Style.Font.Bold <- true
-    rngHeaders.Style.Font.FontColor <- XLColor.DarkBlue;
-    rngHeaders.Style.Fill.BackgroundColor <- XLColor.Aqua;
-
-    changes
-    |> Seq.iteri ( fun i c -> 
-        ws.Cell(2 + i,1).Value <- c.keyValue //"Contr. Key"
-        ws.Cell(2 + i,2).Value <- c.tagAfter //"Event Date"
-        match c.tagBefore with
-        | Some tag -> ws.Cell(2 + i,3).Value <- tag //"Previous Date"
-        | _ -> ()
-        ws.Cell(2 + i,4).Value <- c.fieldName //"Field Name"
-        match c.valueAfter with
-        | Some avalue -> ws.Cell(2 + i,5).Value <- avalue //"Current Value"
-        | _ -> ()
-        match c.valueBefore with
-        | Some avalue -> ws.Cell(2 + i,6).Value <- avalue //"Previous Value"
-        | _ -> ()
-    )
-
-    ws.Columns().AdjustToContents() |> ignore 
-    ws.SheetView.Freeze(1,1)
-    wb.SaveAs(xlsxPath)
